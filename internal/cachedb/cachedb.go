@@ -23,7 +23,6 @@ type NoSqlDB interface {
 	Sale(id, cnt int) (int, error)
 }
 
-// передавать внутрь готовый PG, который интерфейс, потому что DI
 func New(ctx context.Context, sqlDB SqlDB, noSqlDB NoSqlDB) (CacheProducts, error) {
 
 	c := CacheProducts{sqlDB: sqlDB, noSqlDB: noSqlDB, ctx: ctx}
