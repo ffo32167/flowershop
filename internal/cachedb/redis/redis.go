@@ -2,6 +2,7 @@ package redis
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"time"
@@ -13,6 +14,13 @@ import (
 type RedisDB struct {
 	Rdb               *redis.Client
 	productsTableName string
+}
+
+type redisProduct struct {
+	Id       int     `json:"id"`
+	Name     string  `json:"name"`
+	Quantity string  `json:"quantity"`
+	Price    float64 `json:"price"`
 }
 
 const productsTableName = "product_list"
@@ -33,9 +41,8 @@ func New(connStr string) (RedisDB, error) {
 	return RedisDB{Rdb: rdb, productsTableName: productsTableName}, nil
 }
 
-// переделать в мапу
 func (db RedisDB) ListCreate(ctx context.Context, products []internal.Product) error {
-	redisProducts, err := toRedisProductsList(products)
+	redisProducts, err := ToRedisProductsList(products)
 	if err != nil {
 		return fmt.Errorf("unable to convert products list to redis list: %w ", err)
 	}
@@ -51,15 +58,21 @@ func (db RedisDB) ListCreate(ctx context.Context, products []internal.Product) e
 	return nil
 }
 
-func toRedisProductsList(p []internal.Product) (map[string]string, error) {
-	result := make([]string, len(p)*2)
-	fmt.Println(len(result))
-	var j int
-	for i := range p {
-		result[j] = strconv.Itoa(p[i].Id)
-		j++
-		result[j] = p[i].Name
-		j++
+func ToRedisProductsList(products []internal.Product) (map[string]string, error) {
+	redisProducts := make([]redisProduct, len(products))
+	for i := range products {
+		redisProducts[i].Id = products[i].Id
+		redisProducts[i].Name = products[i].Name
+		redisProducts[i].Quantity = internal.TranslateQtyToStr(products[i].Qty)
+		redisProducts[i].Price = products[i].Price
+	}
+	result := make(map[string]string)
+	for i, val := range redisProducts {
+		encoded, err := json.Marshal(val)
+		if err != nil {
+			return make(map[string]string), fmt.Errorf("marshalling failed, err: %w", err)
+		}
+		result[strconv.Itoa(redisProducts[i].Id)] = string(encoded[:])
 	}
 	return result, nil
 }

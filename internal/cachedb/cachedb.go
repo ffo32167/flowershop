@@ -7,6 +7,7 @@ import (
 	"github.com/ffo32167/flowershop/internal"
 )
 
+// перенести в internal
 type CacheProducts struct {
 	sqlDB   SqlDB
 	noSqlDB NoSqlDB

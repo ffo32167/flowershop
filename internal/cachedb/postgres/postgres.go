@@ -17,6 +17,7 @@ type pgProducts []pgProduct
 type pgProduct struct {
 	Id    int     `json:"id"`
 	Name  string  `json:"name"`
+	Qty   int     `json:"qty"`
 	Price float64 `json:"price"`
 }
 
@@ -30,7 +31,7 @@ func New(ctx context.Context, connStr string) (PgDb, error) {
 
 func (db PgDb) List() ([]internal.Product, error) {
 	rows, err := db.pool.Query(context.Background(),
-		`select id, name, price from flowershop.listProducts p`)
+		`select id, name, price, qty from flowershop.listProducts p`)
 	if err != nil {
 		return nil, fmt.Errorf("unable to execute select query: %w ", err)
 	}
@@ -39,7 +40,7 @@ func (db PgDb) List() ([]internal.Product, error) {
 	var pgProduct pgProduct
 	var pgProducts pgProducts
 	for rows.Next() {
-		err = rows.Scan(&pgProduct.Id, &pgProduct.Name, &pgProduct.Price)
+		err = rows.Scan(&pgProduct.Id, &pgProduct.Name, &pgProduct.Qty, &pgProduct.Price)
 		if err != nil {
 			return nil, fmt.Errorf("unable to scan query: %w ", err)
 		}
@@ -64,6 +65,8 @@ func (p pgProducts) toDomain() ([]internal.Product, error) {
 	for i := range p {
 		result[i].Id = p[i].Id
 		result[i].Name = p[i].Name
+		result[i].Qty = p[i].Qty
+		result[i].Price = p[i].Price
 	}
 	return result, nil
 }
