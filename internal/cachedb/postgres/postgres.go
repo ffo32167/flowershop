@@ -30,7 +30,8 @@ func New(ctx context.Context, connStr string) (PgDb, error) {
 }
 
 func (db PgDb) List() ([]internal.Product, error) {
-	rows, err := db.pool.Query(context.Background(),
+	var ctx context.Context = context.Background()
+	rows, err := db.pool.Query(ctx,
 		`select id, name, price, qty from flowershop.listProducts p`)
 	if err != nil {
 		return nil, fmt.Errorf("unable to execute select query: %w ", err)
@@ -40,7 +41,7 @@ func (db PgDb) List() ([]internal.Product, error) {
 	var pgProduct pgProduct
 	var pgProducts pgProducts
 	for rows.Next() {
-		err = rows.Scan(&pgProduct.Id, &pgProduct.Name, &pgProduct.Qty, &pgProduct.Price)
+		err = rows.Scan(&pgProduct.Id, &pgProduct.Name, &pgProduct.Price, &pgProduct.Qty)
 		if err != nil {
 			return nil, fmt.Errorf("unable to scan query: %w ", err)
 		}
