@@ -26,16 +26,16 @@ func newSaleHandler(storage storage.StorageProducts, log *zap.Logger) saleHandle
 func (s saleHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	id, err := strconv.Atoi(mux.Vars(req)["id"])
 	if err != nil {
-		s.log.Error("cant convert id:", zap.Error(err))
+		s.log.Error("saleHandler: cant convert id:", zap.Error(err))
 	}
 	cnt, err := strconv.Atoi(mux.Vars(req)["cnt"])
 	if err != nil {
-		s.log.Error("cant convert cnt:", zap.Error(err))
+		s.log.Error("saleHandler: cant convert cnt:", zap.Error(err))
 	}
 
 	_, err = s.storage.Sale(req.Context(), id, cnt)
 	if err != nil {
-		s.log.Error("storage handler error:", zap.Error(err))
+		s.log.Error("saleHandler storage error:", zap.Error(err))
 		saleResponse := SaleResponse{Message: err.Error()}
 		json.NewEncoder(res).Encode(saleResponse)
 		return
@@ -43,6 +43,6 @@ func (s saleHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	saleResponse := SaleResponse{Message: "successful sale!"}
 	err = json.NewEncoder(res).Encode(saleResponse)
 	if err != nil {
-		s.log.Error("rate handler encoder error:", zap.Error(err))
+		s.log.Error("saleHandler encoder error:", zap.Error(err))
 	}
 }

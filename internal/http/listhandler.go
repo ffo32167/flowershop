@@ -20,11 +20,11 @@ func newListHandler(storage storage.StorageProducts, log *zap.Logger) listHandle
 func (l listHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	data, err := l.storage.List(req.Context())
 	if err != nil {
-		l.log.Error("storage handler error:", zap.Error(err))
+		l.log.Error("listHandler storage error:", zap.Error(err))
 	}
 
 	err = json.NewEncoder(res).Encode(data)
 	if err != nil {
-		l.log.Error("rate handler encoder error:", zap.Error(err))
+		l.log.Error("listHandler encoder error:", zap.Error(err))
 	}
 }
