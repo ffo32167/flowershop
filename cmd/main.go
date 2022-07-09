@@ -6,17 +6,18 @@ import (
 	"os"
 	"time"
 
-	"github.com/ffo32167/flowershop/internal/cachedb"
-	"github.com/ffo32167/flowershop/internal/cachedb/postgres"
-	"github.com/ffo32167/flowershop/internal/cachedb/redis"
+	"github.com/ffo32167/flowershop/internal/http"
+	"github.com/ffo32167/flowershop/internal/storage"
+	"github.com/ffo32167/flowershop/internal/storage/postgres"
+	"github.com/ffo32167/flowershop/internal/storage/redis"
 	"go.uber.org/zap"
 )
 
-//import "github.com/ffo32167/flowershop/internal/redis"
-
 func main() {
-	/*	p := []internal.Product{internal.Product{Id: 1, Name: "aaa", Qty: 3, Price: 150},
-		internal.Product{Id: 2, Name: "bbb", Qty: 4, Price: 22}}
+	/*
+		http://localhost:8080/list
+		http://localhost:8080/sale/1/1
+
 	*/
 	log, err := zap.NewProduction()
 	if err != nil {
@@ -41,16 +42,15 @@ func main() {
 		log.Error("cant conn to redis: ", zap.Error(err))
 	}
 
-	cdb, err := cachedb.New(ctx, pg, rd)
+	storage, err := storage.New(ctx, pg, rd)
 	if err != nil {
 		log.Error("storage create error: ", zap.Error(err))
 	}
 
-	res, err := cdb.List(ctx)
+	apiServer := http.New(storage, os.Getenv("HTTP_PORT"), log)
+
+	err = apiServer.Run()
 	if err != nil {
-		fmt.Println("list err:", err)
-	}
-	for _, val := range res {
-		fmt.Println(val)
+		log.Error("cant start api server:", zap.Error(err))
 	}
 }

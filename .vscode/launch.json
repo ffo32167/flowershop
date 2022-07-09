@@ -12,7 +12,8 @@
             "program": "${fileDirname}",
             "env": {
                 "PG_CONN_STR": "host=localhost user=service password=service dbname=postgres sslmode=disable",
-                "REDIS_CONN_STR": "localhost:6379"
+                "REDIS_CONN_STR": "localhost:6379",
+                "HTTP_PORT": ":8080"
             },
             "args": []
         }
