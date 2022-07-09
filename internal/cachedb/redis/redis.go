@@ -15,14 +15,12 @@ type RedisDB struct {
 	Rdb                  *redis.Client
 	productsTableName    string
 	productsQtyTableName string
-	ctx                  context.Context
 }
 
 type redisProduct struct {
-	Id       int     `json:"id"`
-	Name     string  `json:"name"`
-	Quantity int     `json:"quantity"`
-	Price    float64 `json:"price"`
+	Id    int     `json:"id"`
+	Name  string  `json:"name"`
+	Price float64 `json:"price"`
 }
 
 func New(connStr string) (RedisDB, error) {
@@ -40,36 +38,28 @@ func New(connStr string) (RedisDB, error) {
 	defer cancel()
 	_, err := rdb.Ping(ctx).Result()
 	if err != nil {
-		return RedisDB{productsTableName: productsTableName}, err
+		return RedisDB{}, err
 	}
 	return RedisDB{Rdb: rdb, productsTableName: productsTableName, productsQtyTableName: productsQtyTableName}, nil
 }
 
-func (db RedisDB) ListCreate(products []internal.Product) error {
+func (db RedisDB) ListCreate(ctx context.Context, products []internal.Product) error {
 	redisProducts, err := toRedisProductsList(products)
 	if err != nil {
 		return fmt.Errorf("unable to convert products list to redis list: %w ", err)
 	}
-	_, err = db.Rdb.Del(db.ctx, db.productsTableName).Result()
-	if err != nil {
-		return fmt.Errorf("cant delete set: %w", err)
-	}
-	_, err = db.Rdb.HSet(db.ctx, db.productsTableName, redisProducts).Result()
-	if err != nil {
-		return fmt.Errorf("zadd failed, err: %w", err)
-	}
-	/////////////////////////////////////////////////////////////////////////////////////
 	redisProductsQty, err := toRedisProductsQtyList(products)
 	if err != nil {
 		return fmt.Errorf("unable to convert qty list to redis list: %w ", err)
 	}
-	_, err = db.Rdb.Del(db.ctx, db.productsQtyTableName).Result()
+	txPipe := db.Rdb.TxPipeline()
+	txPipe.Del(ctx, db.productsTableName)
+	txPipe.HSet(ctx, db.productsTableName, redisProducts)
+	txPipe.Del(ctx, db.productsQtyTableName)
+	txPipe.HSet(ctx, db.productsQtyTableName, redisProductsQty)
+	_, err = txPipe.Exec(ctx)
 	if err != nil {
-		return fmt.Errorf("cant delete qty set: %w", err)
-	}
-	_, err = db.Rdb.HSet(db.ctx, db.productsQtyTableName, redisProductsQty).Result()
-	if err != nil {
-		return fmt.Errorf("zadd qty failed, err: %w", err)
+		return fmt.Errorf("pipe error: %w", err)
 	}
 	return nil
 }
@@ -79,7 +69,6 @@ func toRedisProductsList(products []internal.Product) (map[string]string, error)
 	for i := range products {
 		redisProducts[i].Id = products[i].Id
 		redisProducts[i].Name = products[i].Name
-		redisProducts[i].Quantity = products[i].Qty
 		redisProducts[i].Price = products[i].Price
 	}
 	result := make(map[string]string)
@@ -101,8 +90,8 @@ func toRedisProductsQtyList(products []internal.Product) (map[string]string, err
 	return result, nil
 }
 
-func (db RedisDB) List() ([]internal.Product, error) {
-	redisProducts, err := db.Rdb.HGetAll(db.ctx, db.productsTableName).Result()
+func (db RedisDB) List(ctx context.Context) ([]internal.Product, error) {
+	redisProducts, err := db.Rdb.HGetAll(ctx, db.productsTableName).Result()
 	if err != nil {
 		return []internal.Product{}, fmt.Errorf("cant hgetall:%w", err)
 	}
@@ -113,8 +102,8 @@ func (db RedisDB) List() ([]internal.Product, error) {
 	return result, nil
 }
 
-func (db RedisDB) Sale(id, cnt int) (int, error) {
-	res, err := db.Rdb.HIncrBy(db.ctx, db.productsQtyTableName, strconv.Itoa(id), -int64(cnt)).Result()
+func (db RedisDB) Sale(ctx context.Context, id, cnt int) (int, error) {
+	res, err := db.Rdb.HIncrBy(ctx, db.productsQtyTableName, strconv.Itoa(id), -int64(cnt)).Result()
 	if err != nil {
 		return 0, fmt.Errorf("cant update qty in redis:%w", err)
 	}
@@ -137,7 +126,6 @@ func toDomain(p map[string]string) ([]internal.Product, error) {
 	for i := range redisProducts {
 		products[i].Id = redisProducts[i].Id
 		products[i].Name = redisProducts[i].Name
-		products[i].Qty = redisProducts[i].Quantity
 		products[i].Price = redisProducts[i].Price
 	}
 	return products, nil

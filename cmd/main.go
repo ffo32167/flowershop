@@ -46,13 +46,11 @@ func main() {
 		log.Error("storage create error: ", zap.Error(err))
 	}
 
-	res, err := cdb.List()
+	res, err := cdb.List(ctx)
 	if err != nil {
 		fmt.Println("list err:", err)
 	}
 	for _, val := range res {
 		fmt.Println(val)
 	}
-
-	//db.Rdb.Del(ctx, db.productsTableName).Result()
 }

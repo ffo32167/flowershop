@@ -29,8 +29,7 @@ func New(ctx context.Context, connStr string) (PgDb, error) {
 	return PgDb{pool: db}, nil
 }
 
-func (db PgDb) List() ([]internal.Product, error) {
-	var ctx context.Context = context.Background()
+func (db PgDb) List(ctx context.Context) ([]internal.Product, error) {
 	rows, err := db.pool.Query(ctx,
 		`select id, name, price, qty from flowershop.listProducts p`)
 	if err != nil {
@@ -54,7 +53,7 @@ func (db PgDb) List() ([]internal.Product, error) {
 	return internalProducts, nil
 }
 
-func (db PgDb) Sale(id, cnt int) (res int, err error) {
+func (db PgDb) Sale(ctx context.Context, id, cnt int) (res int, err error) {
 	row := db.pool.QueryRow(context.Background(),
 		`select flowershop.saleproducts($1, $2)`, id, cnt)
 	err = row.Scan(&res)
