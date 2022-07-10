@@ -15,8 +15,8 @@ type saleHandler struct {
 	log     *zap.Logger
 }
 
-type SaleResponse struct {
-	Message string
+type saleResponse struct {
+	Message string `json:"message"`
 }
 
 func newSaleHandler(storage storage.StorageProducts, log *zap.Logger) saleHandler {
@@ -33,14 +33,14 @@ func (s saleHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 		s.log.Error("saleHandler: cant convert cnt:", zap.Error(err))
 	}
 
-	_, err = s.storage.Sale(req.Context(), id, cnt)
+	err = s.storage.Sale(req.Context(), id, cnt)
 	if err != nil {
 		s.log.Error("saleHandler storage error:", zap.Error(err))
-		saleResponse := SaleResponse{Message: err.Error()}
+		saleResponse := saleResponse{Message: err.Error()}
 		json.NewEncoder(res).Encode(saleResponse)
 		return
 	}
-	saleResponse := SaleResponse{Message: "successful sale!"}
+	saleResponse := saleResponse{Message: "successful sale!"}
 	err = json.NewEncoder(res).Encode(saleResponse)
 	if err != nil {
 		s.log.Error("saleHandler encoder error:", zap.Error(err))

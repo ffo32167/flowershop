@@ -14,13 +14,13 @@ type StorageProducts struct {
 
 type SqlDB interface {
 	List(ctx context.Context) ([]internal.Product, error)
-	Sale(ctx context.Context, id, cnt int) (res int, err error)
+	Sale(ctx context.Context, id, cnt int) (int, error)
 }
 
 type NoSqlDB interface {
 	ListCreate(ctx context.Context, products []internal.Product) error
 	List(ctx context.Context) ([]internal.Product, error)
-	Sale(ctx context.Context, id, cnt int) (int, error)
+	Sale(ctx context.Context, id, cnt int) error
 }
 
 func New(ctx context.Context, sqlDB SqlDB, noSqlDB NoSqlDB) (StorageProducts, error) {
@@ -48,14 +48,14 @@ func (c StorageProducts) List(ctx context.Context) ([]internal.Product, error) {
 	return c.noSqlDB.List(ctx)
 }
 
-func (c StorageProducts) Sale(ctx context.Context, id int, cnt int) (int, error) {
+func (c StorageProducts) Sale(ctx context.Context, id int, cnt int) error {
 	_, err := c.sqlDB.Sale(ctx, id, cnt)
 	if err != nil {
-		return 0, fmt.Errorf("cant sale in sql: %w", err)
+		return fmt.Errorf("cant sale in sql: %w", err)
 	}
-	_, err = c.noSqlDB.Sale(ctx, id, cnt)
+	err = c.noSqlDB.Sale(ctx, id, cnt)
 	if err != nil {
-		return 0, fmt.Errorf("cant sale in nosql: %w", err)
+		return fmt.Errorf("cant sale in nosql: %w", err)
 	}
-	return 0, nil
+	return nil
 }

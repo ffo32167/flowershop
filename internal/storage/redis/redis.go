@@ -102,12 +102,12 @@ func (db RedisDB) List(ctx context.Context) ([]internal.Product, error) {
 	return result, nil
 }
 
-func (db RedisDB) Sale(ctx context.Context, id, cnt int) (int, error) {
-	res, err := db.Rdb.HIncrBy(ctx, db.productsQtyTableName, strconv.Itoa(id), -int64(cnt)).Result()
+func (db RedisDB) Sale(ctx context.Context, id, cnt int) error {
+	_, err := db.Rdb.HIncrBy(ctx, db.productsQtyTableName, strconv.Itoa(id), -int64(cnt)).Result()
 	if err != nil {
-		return 0, fmt.Errorf("cant update qty in redis:%w", err)
+		return fmt.Errorf("cant update qty in redis:%w", err)
 	}
-	return int(res), nil
+	return nil
 }
 
 func toDomain(p map[string]string) ([]internal.Product, error) {
