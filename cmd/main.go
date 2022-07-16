@@ -6,6 +6,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/ffo32167/flowershop/internal/cron"
 	"github.com/ffo32167/flowershop/internal/http"
 	"github.com/ffo32167/flowershop/internal/storage"
 	"github.com/ffo32167/flowershop/internal/storage/postgres"
@@ -48,6 +49,9 @@ func main() {
 	}
 
 	apiServer := http.New(storage, os.Getenv("HTTP_PORT"), log)
+
+	cron := cron.New(storage, log)
+	go cron.Action(ctx, 5*time.Second)
 
 	err = apiServer.Run()
 	if err != nil {
