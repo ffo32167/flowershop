@@ -8,8 +8,9 @@ import (
 	"go.uber.org/zap"
 )
 
+//	zap.NewNop() - создаёт дамми-логгер, для тестов
 type listHandler struct {
-	storage storage.StorageProducts
+	storage storage.StorageProduct
 	log     *zap.Logger
 }
 
@@ -19,7 +20,7 @@ type listResponse struct {
 	Price float64 `json:"price"`
 }
 
-func newListHandler(storage storage.StorageProducts, log *zap.Logger) listHandler {
+func newListHandler(storage storage.StorageProduct, log *zap.Logger) listHandler {
 	return listHandler{storage: storage, log: log}
 }
 
@@ -28,7 +29,6 @@ func (l listHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		l.log.Error("listHandler storage error:", zap.Error(err))
 	}
-
 	listResponse := make([]listResponse, len(productList))
 	for i := range productList {
 		listResponse[i].Id = productList[i].Id

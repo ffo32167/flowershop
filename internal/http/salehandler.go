@@ -11,7 +11,7 @@ import (
 )
 
 type saleHandler struct {
-	storage storage.StorageProducts
+	storage storage.StorageProduct
 	log     *zap.Logger
 }
 
@@ -19,7 +19,7 @@ type saleResponse struct {
 	Message string `json:"message"`
 }
 
-func newSaleHandler(storage storage.StorageProducts, log *zap.Logger) saleHandler {
+func newSaleHandler(storage storage.StorageProduct, log *zap.Logger) saleHandler {
 	return saleHandler{storage: storage, log: log}
 }
 

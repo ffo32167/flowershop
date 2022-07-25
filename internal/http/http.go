@@ -9,12 +9,12 @@ import (
 )
 
 type ApiServer struct {
-	storage storage.StorageProducts
+	storage storage.StorageProduct
 	port    string
 	log     *zap.Logger
 }
 
-func New(storage storage.StorageProducts, port string, log *zap.Logger) ApiServer {
+func New(storage storage.StorageProduct, port string, log *zap.Logger) ApiServer {
 	return ApiServer{storage: storage, port: port, log: log}
 }
 

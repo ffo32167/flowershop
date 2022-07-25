@@ -9,11 +9,11 @@ import (
 )
 
 type Cron struct {
-	sp  storage.StorageProducts
+	sp  storage.StorageProduct
 	log *zap.Logger
 }
 
-func New(sp storage.StorageProducts, log *zap.Logger) Cron {
+func New(sp storage.StorageProduct, log *zap.Logger) Cron {
 	return Cron{sp: sp, log: log}
 }
 
