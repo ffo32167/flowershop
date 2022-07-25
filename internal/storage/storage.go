@@ -49,7 +49,12 @@ func (c StorageProduct) List(ctx context.Context) ([]internal.Product, error) {
 }
 
 func (c StorageProduct) Sale(ctx context.Context, id int, cnt int) error {
-	// валидация id через if, структуру через библиотеку
+	if id <= 0 {
+		return fmt.Errorf("id should be greater than 1")
+	}
+	if cnt <= 0 {
+		return fmt.Errorf("cnt should be greater than 1")
+	}
 	_, err := c.sqlDB.Sale(ctx, id, cnt)
 	if err != nil {
 		return fmt.Errorf("cant sale in sql: %w", err)
